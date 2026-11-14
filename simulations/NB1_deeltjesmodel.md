@@ -34,6 +34,11 @@ We nemen als voorbeeld twee fietsers, waarbij de fietser 1 een eenparige bewegin
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
+```
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Beginwaarden
 dt = 0.25                  #s
@@ -65,7 +70,7 @@ plt.ylabel('$x$(m)')
 
 plt.plot(t,x_1,'r.', markersize=1, label='fietser 1')
 plt.plot(t,x_2,'b.', markersize=1, label='fietser 2')
-
+plt.grid(True)
 plt.show()
 
 
@@ -80,8 +85,53 @@ Maak het tijdsinterval $dt$ groter en vergelijk de afgelegde weg in de tien seco
 
 <!-- Jouw antwoord hier  -->
 
+
+Code hieronder geeft zelfde eindwaarde voor de aftsand na 10 sec. Dit is een logische gevolg als we de natuurkunde volgen, het is gewoon minder inzichtelijk/betrouwbaar vanwege de vermindering in data punten.
+-Joanan
+
 ```python
-%reset -f  #clears memory as we don't need it further down 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Beginwaarden
+dt = 1                  #s grotere dt zoals gevraagd.
+t_e = 10                   #s
+N = int(t_e/dt)+1
+t = np.arange(0,t_e+dt,dt) #s
+
+# fietser 1
+x_1 = np.zeros(N)          #m     maakt array van lengte N met alleen maar waarde 0.
+v_1 = 5                    #m/s
+
+# fietser 2
+x_2 = np.zeros(N)          #m     
+v_2 = np.zeros(N)          #m/s     
+a_2 = .5                   #m/s^2     
+
+# Uitvoeren van de simulatie
+for i in range(0,N-1):
+    x_1[i+1] = x_1[i] + v_1*dt
+    
+    x_2[i+1] = x_2[i] + v_2[i]*dt
+    v_2[i+1] = v_2[i] + a_2*dt
+
+# Plotten van de gegevens.    
+plt.figure()
+
+plt.xlabel('$t$(s)')
+plt.ylabel('$x$(m)')
+
+plt.plot(t,x_1,'r.', markersize=1, label='fietser 1')
+plt.plot(t,x_2,'b.', markersize=1, label='fietser 2')
+plt.grid(True)
+plt.show()
+
+
+```
+
+```python
+%reset -f
+#clears memory as we don't need it further down 
 ```
 
 ## Naar een deeltjesmodel
@@ -181,12 +231,14 @@ Voorspel en controleer vervolgens met onderstaande code.
 ```
 
 ```python
+#in de array zijn 4 particles met 4 verschillende r locaties, zie for loop, de plot geeft alle vier particles en hun locatie weer.
 import numpy as np
 import matplotlib.pyplot as plt
 
 plt.figure()
 for particle in particle_array:
     plt.plot(particle.r[0],particle.r[1],'k.')
+plt.xlabel('locatie (r)')
 plt.show()
 
 ```
@@ -229,7 +281,37 @@ En als je wilt gaan voor een uitdaging:
 ```
 
 ```python
-### YOUR CODE HERE ###
+particle_array_zelf = []
+
+for start_x in range(10):
+    particle_array_zelf.append(ParticleClass(m=1.0, v=[np.random.randint(-5, 6), 0.2], r=[start_x, 0.0], R=1.0))
+
+#Beginposities opslaan met kopie, update_position  pakt original
+#maakt array van de list waarin met p wordt gezocht naar de positie .r
+begin_posities = [list(p.r) for p in particle_array_zelf]
+
+# Een kleur per deeltje uit een colormap
+#gestolen van claude
+kleuren = plt.cm.tab10(np.linspace(0, 1, len(particle_array_zelf)))
+
+plt.figure(figsize=(8, 5))
+
+for particle, particle_object in enumerate(particle_array_zelf):
+    particle_object.update_position(1.0)
+    # Plot begin- en eindpositie in dezelfde kleur, met een lijn ertussen
+    x0, y0 = begin_posities[particle]
+    x1, y1 = particle_object.r
+    kleur=kleuren[particle]
+    plt.scatter(x0, y0, color=kleur, marker="o", label=f"Deeltje {particle}")
+    plt.scatter(x1, y1, color=kleur, marker="x")
+    plt.plot([x0, x1], [y0, y1], color=kleur, linestyle="--", alpha=0.5) #opacity=alpha
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Begin (o) en eindpositie (x) van elk deeltje")
+plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.tight_layout()
+plt.show()
 ```
 
 Onze simulaties worden snel “zwaar”. Er moeten veel berekeningen gedaan worden en dat kost nu eenmaal tijd. Nu is het wel zo dat sommige berekeningen meer tijd kosten dan anderen. Om te kijken of een stukje code geoptimaliseerd kan worden, moeten we een timer maken. Dat kan met onderstaande code:
