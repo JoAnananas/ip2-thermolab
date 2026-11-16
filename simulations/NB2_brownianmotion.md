@@ -48,7 +48,36 @@ Als model gaan we uit van een deel van het volume van een fietsband die onder ee
 ```
 
 ```{solution} ex-recap-1
-### YOUR CODE HERE ###
+pV = nRT
+
+Vmolecuul = V/N
+
+R = Kb
+
+10 bar = 1000000 Pa,   T = 293K,    Kb = 1.38e^-23 J/K 
+
+
+V/N = (Kb*T)/P = Vmolecuul
+
+(1.38e^-23*293)/1000000 = Vmolecuul
+
+Vmolecuul = 4.04e^-27 m^3
+
+
+Vkubus = l^3
+
+
+Vmolecuul = Vkubus
+
+
+4.04e^-27 = l^3
+
+1.6e^-27 = l
+
+
+l = 1.6e^-27 m
+
+l = 1.6 nm
 ```
 
 De simulatie die we gaan maken bevat maar twee dimensies. We kunnen het oppervlak per deeltje in deze simulatie daarom kiezen als het zojuist berekende $V_\text{molecuul}^{2/3}$.
@@ -68,7 +97,15 @@ Ook deze heb je hierna nodig.
 ```
 
 ```{solution} ex-recap-2
-### YOUR CODE HERE ###
+avogadro = 6,02214076 × 10²³ mol⁻¹
+
+0,02897 kg/mol
+
+Mmolecuul = 4.81e^-26
+
+v^2=2*((f/2)*Kb*T)/m
+
+v\ =\ \sqrt{2\frac{\left(1.38\cdot 10^{-23}\right)\cdot 293}{\left(4.81\cdot 10^{-26}\right)}} = 410.03017
 ```
 
 ```{exercise} Radius
@@ -77,7 +114,11 @@ In de python cell hieronder staan enkele waarden gegeven. Het aantal deeltjes $N
 ```
 
 ```{solution} ex-recap-3
-### YOUR CODE HERE ###
+A = V^(2/3)
+
+A = pi*R^2
+
+R = sqrt((V^(2/3))/pi)
 ```
 
 ```{exercise} DT
@@ -88,11 +129,11 @@ Bekijk de waarde van `DT`. Hoe zorgt deze waaarde ervoor dat het onwaarschijnlij
 Onze simulatie modelleert dus een klein systeem zonder rekening te houden met de kracht tussen de luchtmoleculen. Je zult zien dat we toch al behoorlijk wat van de processor vragen om deze berekeningen te doen. Om een meer realistische modelsimulatie te maken is daarom een serieuze uitdaging, die veel wiskunde en programmeerervaring vraagt. Op dit ogenblik wordt dit bijvoorbeeld gevraagd bij een van de eerste opdrachten van het vak 'Computational Physics' van de master Applied Physics. 
 
 ```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
-BOX_SIZE_0 = 10                # Hoogte en lengte startvolume
+BOX_SIZE_0 = 10                # Hoogte en lengte startvolume                        Lengte
 N = 40                         # Aantal deeltjes
-V_0 = 1                        # Startsnelheid van deeltjes
-RADIUS = 0.3                   # Straal van moleculen
-DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen
+V_0 = 1                        # Startsnelheid van deeltjes                          Snelheid
+RADIUS = 0.3                   # Straal van moleculen                                Lengte
+DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen want een deeltje beweegt met Dx = vDt dus Dt = Dx/v en als dat nog *0.1 wordt gedaan kan het er dus praktisch niet door heen gaan                      Tijd
 ```
 
 ### Particle class

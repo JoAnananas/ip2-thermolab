@@ -1,0 +1,31 @@
+**NB2**
+opgave 1
+pV = nRT
+Vmolecuul = V/N
+R = Kb
+10 bar = 1000000 Pa,   T = 293K,    Kb = 1.38e^-23 J/K 
+
+V/N = (Kb*T)/P = Vmolecuul
+(1.38e^-23*293)/1000000 = Vmolecuul
+Vmolecuul = 4.04e^-27 m^3
+
+Vkubus = l^3
+
+Vmolecuul = Vkubus
+
+4.04e^-27 = l^3
+1.6e^-27 = l
+
+l = 1.6e^-27 m
+l = 1.6 nm
+
+opgave 2
+avogadro = 6,02214076 × 10²³ mol⁻¹
+
+0,02897 kg/mol
+
+Mmolecuul = 4.81e^-26
+
+v^2=2*((f/2)*Kb*T)/m
+
+v\ =\ \sqrt{2\frac{\left(1.38\cdot 10^{-23}\right)\cdot 293}{\left(4.81\cdot 10^{-26}\right)}}
