@@ -81,7 +81,8 @@ Maak het tijdsinterval $dt$ groter en vergelijk de afgelegde weg in de tien seco
 <!-- Jouw antwoord hier  -->
 
 ```python
-%reset -f  #clears memory as we don't need it further down 
+%reset -f  
+#clears memory as we don't need it further down 
 ```
 
 ## Naar een deeltjesmodel
@@ -663,8 +664,8 @@ class ParticleClass:
 # Simulation parameters
 dt = 0.1         
 num_steps = 500  
-particle = ParticleClass(m=1.0, v=[0, 0], r=[0.0, 0.0],R=1.0)  
-a = np.array([0.0, -5.0])  
+particle = ParticleClass(m=1.0, v=[8, 0], r=[0.0, 0.0],R=1.0)  
+a = np.array([0.0, -9.81])  
 
 track_x = []
 track_y = []
@@ -704,7 +705,7 @@ def update(frame):
     return dot, track_line
 
 # Create animation
-ani = FuncAnimation(fig, update, frames=range(200), init_func=init, blit=True, interval=50)
+ani = FuncAnimation(fig, update, frames=range(200), init_func=init, blit=True, interval=10)
 
 # For Jupyter notebook:
 from IPython.display import HTML
@@ -819,8 +820,10 @@ class ParticleClass:
         self.r += self.v * dt  
 
     def collide_detection(self, other):
-        ### YOUR CODE HERE ###
-        return  dx**2+dy**2 < rr**2 
+        dx = self.r[0]-other.r[0]
+        dy = self.r[1]-other.r[1]
+        rr = self.R+other.R
+        return  dx**2+dy**2 <= rr**2 
 ```
 
 ```python
@@ -828,8 +831,8 @@ class ParticleClass:
 dt = 0.1         # time step
 num_steps = 200  # number of time steps
 
-particleA = ParticleClass(m=1.0, v=[2.5, 0], r=[-2.0, 0.0],R=0.45)  
-particleB = ParticleClass(m=1.0, v=[-1, 0], r=[0.0, 0.0],R=0.45)  
+particleA = ParticleClass(m=1.0, v=[4, 0], r=[-2.0, 0.0],R=0.45)  
+particleB = ParticleClass(m=1.0, v=[-2, 0], r=[0.0, 0.0],R=0.45)  
 
 track_x = []
 track_y = []
@@ -871,7 +874,8 @@ def update(frame):
 
     # botsing tussen de deeltjes onderling
     if particleA.collide_detection(particleB):
-        ### YOUR CODE HERE ###
+        particleA.v = -particleA.v
+        particleB.v = -particleB.v
 
 
     # botsing met de wand
@@ -889,7 +893,7 @@ def update(frame):
     return dot, track_line
 
 # Creeer animatie
-ani = FuncAnimation(fig, update, frames=range(num_steps), init_func=init, blit=True, interval=50)
+ani = FuncAnimation(fig, update, frames=range(num_steps), init_func=init, blit=True, interval=10)
 
 # Voor Jupyter notebook:
 from IPython.display import HTML
@@ -976,7 +980,7 @@ class ParticleClass:
 dt = 0.1         # time step
 num_steps = 530  # number of time steps
 m1 = 1.0
-m2 = 1.0
+m2 = 100.0
 
 particleA = ParticleClass(m=m1, v=[0, 0], r=[-4.0, 0.0],R=0.45)  
 particleB = ParticleClass(m=m2, v=[-1, 0], r=[-2.0, 0.0],R=0.45)  
@@ -1023,18 +1027,20 @@ def update(frame):
         vA, vB, mA, mB, rA, rB = particleA.v, particleB.v, particleA.m, particleB.m, particleA.r, particleB.r
         vA_new = vA - 2 * mB / (mA + mB) * np.dot(vA - vB, rA - rB) / (1e-12+np.linalg.norm(rA - rB))**2 * (rA - rB)
         vB_new = vB - 2 * mA / (mA + mB) * np.dot(vB - vA, rB - rA) / (1e-12+np.linalg.norm(rB - rA))**2 * (rB - rA)
+        if np.dot(particleA.v - particleB.v,particleA.r - particleB.r) < 0:
+            counter += 1
         particleA.v = vA_new
         particleB.v = vB_new
-        ### YOUR CODE HERE ###
+
 
 
     # wall collision detection and response
     if particleA.r[0]**2>100: # Check if particle is outside the bounds, np.abs could be used but is slower
         particleA.v[0] = -particleA.v[0]
-        ### YOUR CODE HERE ###
+        counter += 1
     if particleA.r[1]**2>100: 
         particleA.v[1] = -particleA.v[1]
-        ### YOUR CODE HERE ###
+        counter += 1
 
     dot.set_data([particleB.r[0]], [particleB.r[1]])
     if particleB.r[0]**2>100: 
@@ -1046,7 +1052,7 @@ def update(frame):
     return dot, counter_text
 
 # Create animation
-ani = FuncAnimation(fig, update, frames=range(200), init_func=init, blit=True, interval=50)
+ani = FuncAnimation(fig, update, frames=range(280), init_func=init, blit=True, interval=1)
 
 # For Jupyter notebook:
 from IPython.display import HTML
@@ -1054,13 +1060,12 @@ HTML(ani.to_jshtml())
 ```
 
 ```{exercise}
-Pas de bovenstaande code aan zodat $m_1 = 1$ en $m_2 = 50$. Run de code en geef hieronder als integer aan hoeveel botsingen totaal hebben plaats gevonden. Let op! Het kan zijn dat je voor het precies antwoord nog wat dingen moet aanpassen...
+Pas de bovenstaande code aan zodat $m_1 = 1$ en $m_2 = 100$. Run de code en geef hieronder als integer aan hoeveel botsingen totaal hebben plaats gevonden. Let op! Het kan zijn dat je voor het precies antwoord nog wat dingen moet aanpassen...
 ```
 
 
 ```python tags=["NB1_eindantwoord"]
-#num_botsingen = ...
-### YOUR CODE HERE ###
+#31
 ```
 
 ```{exercise}
