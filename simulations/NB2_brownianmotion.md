@@ -48,7 +48,15 @@ Als model gaan we uit van een deel van het volume van een fietsband die onder ee
 ```
 
 ```{solution} ex-recap-1
-### YOUR CODE HERE ###
+k_B = 1.380649e-23
+T = 293              
+p = 10e5             
+
+V_molecuul = k_B * T/p        # m^3
+L = V_molecuul**(1/3)           # ribbe van de kubus
+
+print(f"V_molecuul = {V_molecuul:.2e} m^3")   # 4.04e-27 m^3
+print(f"ribbe = {L*1e9:.2f} nm")              # 1.59 nm ≈ 1.6 nm
 ```
 
 De simulatie die we gaan maken bevat maar twee dimensies. We kunnen het oppervlak per deeltje in deze simulatie daarom kiezen als het zojuist berekende $V_\text{molecuul}^{2/3}$.
@@ -68,7 +76,15 @@ Ook deze heb je hierna nodig.
 ```
 
 ```{solution} ex-recap-2
-### YOUR CODE HERE ###
+#Antwoord vraag 2:
+T=293.15
+k_b=1.380649e-23
+f=2
+u= 1.66054e-27 #atomaire massa eenheid
+m=u*28.91 #specifiek gewicht lucht, combi stikstof en zuurstof en koolstof
+# 0.5*m*v**2=(f/2)k_B*T
+v=np.sqrt(2*(f/2)*k_B*T/m)
+print(f'v={v}m/s')
 ```
 
 ```{exercise} Radius
@@ -77,7 +93,14 @@ In de python cell hieronder staan enkele waarden gegeven. Het aantal deeltjes $N
 ```
 
 ```{solution} ex-recap-3
-### YOUR CODE HERE ###
+#Antwoord vraag 3:
+#Radius is:
+V=V_molecuul
+R=np.sqrt(V/np.pi) # aannemend dat het een bal is
+print(R)
+#Of we gebruiken de ribbe=1.59nm
+R_froml=0.5*L
+print(R_froml)
 ```
 
 ```{exercise} DT
@@ -87,12 +110,50 @@ Bekijk de waarde van `DT`. Hoe zorgt deze waaarde ervoor dat het onwaarschijnlij
 
 Onze simulatie modelleert dus een klein systeem zonder rekening te houden met de kracht tussen de luchtmoleculen. Je zult zien dat we toch al behoorlijk wat van de processor vragen om deze berekeningen te doen. Om een meer realistische modelsimulatie te maken is daarom een serieuze uitdaging, die veel wiskunde en programmeerervaring vraagt. Op dit ogenblik wordt dit bijvoorbeeld gevraagd bij een van de eerste opdrachten van het vak 'Computational Physics' van de master Applied Physics. 
 
+```python
+import numpy as np
+#Antwoord vraag 1:
+k_B = 1.380649e-23 
+T = 293.15
+p = 10e5          
+
+V_molecuul = k_B * T/p        # m^3
+L = V_molecuul**(1/3)           #gaat van m^3 naar m^1
+
+print(f"V_molecuul = {V_molecuul:.2e} m^3")   # 4.04e-27 m^3
+print(f"ribbe = {L*1e9:.2f} nm")              # 1.59 nm ≈ 1.6 nm
+```
+
+```python
+#Antwoord vraag 2:
+T=293.15
+k_b=1.380649e-23
+f=2
+u= 1.66054e-27 #atomaire massa eenheid
+m=u*28.91 #specifiek gewicht lucht, combi stikstof en zuurstof en koolstof
+# 0.5*m*v**2=(f/2)k_B*T
+v=np.sqrt(2*(f/2)*k_B*T/m)
+print(f'v={v}m/s')
+```
+
+```python
+#Antwoord vraag 3:
+#Radius is:
+V=V_molecuul
+R=np.sqrt(V/np.pi) # aannemend dat het een bal is
+print(R)
+#Of we gebruiken de ribbe=1.59nm
+R_froml=0.5*L
+print(R_froml)
+```
+
 ```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
-BOX_SIZE_0 = 10                # Hoogte en lengte startvolume
-N = 40                         # Aantal deeltjes
-V_0 = 1                        # Startsnelheid van deeltjes
-RADIUS = 0.3                   # Straal van moleculen
-DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen
+BOX_SIZE_0 = 10                # Hoogte en lengte startvolume (m)
+N = 40                         # Aantal deeltjes (kwantiteit)
+V_0 = 1                        # Startsnelheid van deeltjes (m/s)
+RADIUS = 0.3                   # Straal van moleculen (m)
+DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen (t)
+#Door de radius en snehlheid te betrekken tot de dt wordt voorkomen dat botsingen gebeuren binnen de intervallen
 ```
 
 ### Particle class
@@ -183,8 +244,13 @@ Leg uit dat d.m.v. onderstaande code de deeltjes allemaal dezelfde snelheid hebb
 ```
 
 ```{solution} ex-recap-5
-Jouw antwoord hier...
-### YOUR CODE HERE ###
+snelheid is pythagoras gebaseerd met de schuine zijde zodat die altijd even lang is. grotere vx betekend namelijk kleinere vy, ze zijn direct gecorroleerd. dus hoevel vx en vy uniek zijn is de combinatie hetzelfde
+
+pos maakt een uniforme random locatie binnen de box_size_0 per particle dmv de for i range(N).
+```
+
+```python
+#%whos
 ```
 
 ```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
@@ -209,11 +275,11 @@ Leg uit hoe er in onderstaande code wordt voorkomen dat de botsing tussen twee d
 ```
 
 ```{solution} ex-recap-6
-Jouw antwoord hier...
-### YOUR CODE HERE ###
+voorkomt dat i,j EN j,i kunnen worden bekenen. reduceerd het to alleen i,j
 ```
 
 ```python editable=true slideshow={"slide_type": ""} tags=["NB2_init"]
+#voorkomt dat i,j EN j,i kunnen worden bekenen. reduceerd het to alleen i,j
 def handle_collisions(particles):
     """ alle onderlinge botsingen afhandelen voor deeltjes in lijst """
     num_particles = len(particles)
@@ -310,19 +376,24 @@ Om te controleren of onze code werkt passen we nu de code aan.
 Voeg aan de simulatie een regel toe die voor elke tijdstap bepaalt wat de totale kinetische energie is voor alle deeltjes en neem deze waarde op in een array die bij elke tijdstap met één element groeit in lengte. Maak vervolgens een plot van de totale kinetische energie als functie van de tijd gedurende een simulatie van 100 tijdstappen.
 ```
 
-```python tags=["NB2_ex7"]
-# plotten van kinetische energie als functie van tijd
-
+```python
 particles = []
 energy_tot = []
 create_particles(particles)
+
 for i in range(100):
     take_time_step(particles)
-    # voeg de som van de kinetische energie in deze stap toe aan energy_tot 
-    ### YOUR CODE HERE ###
+    energy_tot.append(sum(p.kin_energy for p in particles))
+energy_tot=np.array(energy_tot)
+energy_tot_centered=energy_tot-np.mean(energy_tot)
+print(np.mean(energy_tot))
+time_steps = np.arange(len(energy_tot))
 
-# plot de figuur van de kinetische energie als functie van de tijd. 
-### YOUR CODE HERE ###
+plt.figure()
+plt.xlabel('time step')
+plt.ylabel('total kinetic energy')
+plt.plot(time_steps, energy_tot_centered, 'k.')
+plt.show()
 ```
 
 ```{exercise} 
@@ -331,10 +402,29 @@ Als je heel nauwkeurig naar de waarde voor de totale kinetische energie kijkt, d
 ```
 
 ```{solution} ex-recap-8
-Jouw antwoord hier...
-### YOUR CODE HERE ###
+Ik heb ingezoomt door het residu te bereken. dit levert deviatons op een schaal van max [10,-10]e-15.
 ```
 
+```python
+particles = []
+energy_tot = []
+create_particles(particles)
+
+for i in range(100):
+    take_time_step(particles)
+    energy_tot.append(sum(p.kin_energy for p in particles))
+
+energy_tot=np.array(energy_tot)
+energy_tot_centered=energy_tot-np.mean(energy_tot)
+print(np.mean(energy_tot))
+time_steps = np.arange(len(energy_tot))
+
+plt.figure()
+plt.xlabel('time step')
+plt.ylabel('total kinetic energy')
+plt.plot(time_steps, energy_tot_centered, 'k.')
+plt.show()
+```
 
 Voor simulaties waarbij de kans op botsingen heel groot is (richting vloeistof), is er een handige methode om de snelheid van je simulatie op te voeren.
 In onderstaande code wordt daar een voorbeeld van gegeven.
@@ -358,12 +448,55 @@ def handle_collisions(particles):
 
 Leg uit wat deze code precies doet. 
 
+Antwoord: als ze niet kunnen bostsen ivm met locatie, dit neemt de code op zodat het rekentijd scheelt.
+
+
 Maak een script waarbij twee deeltjes met dezelfde (absolute) snelheid op een derde deeltje afbewegen en tegelijk zouden botsen.
 - Laat zien dat 'slechts' twee deeltjes een interactie met elkaar aan gaan.
 - Leg uit waarom dat een acceptabele benadering is wanneer je veel deeltjes botsingen per tijdseenheid hebt.
 - Voor wie een uitdaging wil: maak een grafiek met het aantal botsingen per tijdseenheid. Dit om bovenstaande benadering verder te verantwoorden.
 ```
 
+
+- Laat zien dat 'slechts' twee deeltjes een interactie met elkaar aan gaan.
+
+  De manier dat collisions nu zijn opgesteld kan er maar één botsen en de andere botst de frame erna.
+- Leg uit waarom dat een acceptabele benadering is wanneer je veel deeltjes botsingen per tijdseenheid hebt.
+
+   hoevaak gebeurt het dat 2 tweedltes precies tegelijkertijd tegen een 3de particle botsen? vrijwel nooit. verder als we dit proberen op te lossen krijg je verlies van kin_energie...
+- Voor wie een uitdaging wil: maak een grafiek met het aantal botsingen per tijdseenheid. Dit om bovenstaande benadering verder te verantwoorden.
+
+  nee
+
+```python
+particle_1 = ParticleClass(m=1.0, v=[-5.0, 0], r=[5.0, 0.0], R=0.3)
+particle_2 = ParticleClass(m=1.0, v=[5.0, 0], r=[-5.0, 0.0], R=0.3)
+particle_3 = ParticleClass(m=1.0, v=[0.0, 0], r=[0.0, 0.0], R=0.3) #stilstaand particle
+
+#implementing the new particles in the current ecosystem
+particles = [particle_1,particle_2,particle_3]
+
+fig, ax = plt.subplots()
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_xlim(-BOX_SIZE_0/2, BOX_SIZE_0/2)
+ax.set_ylim(-BOX_SIZE_0/2, BOX_SIZE_0/2)
+ax.set_aspect('equal')
+dot, = ax.plot([], [], 'ro', ms=13);
+
+def init():
+    dot.set_data([], [])
+    return dot,
+
+def update(frame):
+    take_time_step(particles)
+    dot.set_data([p.r[0] for p in particles], [p.r[1] for p in particles])
+    return dot,
+
+ani = FuncAnimation(fig, update, frames=100, init_func=init, blit=True, interval=50)
+plt.close() #delete de tweede static plot
+HTML(ani.to_jshtml())
+```
 
 ````{tip} Nog sneller
 Er is een manier om je script nog sneller te maken. 
@@ -428,6 +561,37 @@ print(f"Fully vectorized: Time taken for {repeats} dot products of length {L}: {
 ```
 
 
+```python
+import numpy as np
+import time
+
+L = 2                # lengte van de vector
+repeats = 1_000_000  # aantal herhalingen
+
+rnd_vec1 = np.random.rand(L, repeats)
+ 
+# test numpy dot product
+t0 = time.perf_counter()
+for vec1 in rnd_vec1.T:
+    dot = np.dot(vec1, vec1)
+t1 = time.perf_counter()
+
+print(f"Numpy: Time taken for {repeats} dot products of length {L}: {t1 - t0:.4f} seconds")
+
+# test no numpy dot product 
+t0 = time.perf_counter()
+for vec1 in rnd_vec1.T:
+    dot = vec1[0] * vec1[0] + vec1[1] * vec1[1] # + vec1[2] * vec1[2] + vec1[3] * vec1[3] # don't forget to adjust!
+t1 = time.perf_counter()
+
+print(f"No Numpy: Time taken for {repeats} dot products of length {L}: {t1 - t0:.4f} seconds")
+
+# test fully vectorized 
+t0 = time.perf_counter()
+dot = np.sum(rnd_vec1[0] * rnd_vec1[0] + rnd_vec1[1] * rnd_vec1[1])
+t1 = time.perf_counter()
+print(f"Fully vectorized: Time taken for {repeats} dot products of length {L}: {t1 - t0:.4f} seconds")
+```
 
 ## Brownian motion
 
@@ -507,7 +671,7 @@ for i in range(N-1):
     vy = np.random.choice([-1, 1])*np.sqrt(v_0**2-vx**2)        
     pos = Box_length_0*np.random.uniform(-1,1,2)
     particles.append(ParticleClass(m=1.0, v=[vx, vy], r = pos, R=.5,c='blue')) 
-
+#voegt zware particle toe met andere kleur, oftewel de pollen.
 particles.append(ParticleClass(m=20.0, v=[0, 0], r = [0, 0], R=.5,c='red')) 
 
 ```
@@ -520,7 +684,7 @@ Voeg voor deze regel goede metadata toe.
 ```
 
 ```{solution} ex-brownian-1
-### YOUR CODE HERE ###
+voegt zware particle toe met andere kleur, oftewel de pollen.
 ```
 
 
@@ -543,9 +707,9 @@ plt.ylim(-Box_length_0,Box_length_0)
 
 for particle, particle_object in enumerate(particles):
     plt.plot(particle_object.r[0],particle_object.r[1],color=particle_object.c,marker='.')
-    # plt.arrow(particle_object.r[0],particle_object.r[1], 
-    #           particle_object.v[0],particle_object.v[1], 
-    #           head_width=0.05, head_length=0.1, color='red')
+    plt.arrow(particle_object.r[0],particle_object.r[1], 
+              particle_object.v[0],particle_object.v[1], 
+              head_width=0.05, head_length=0.1, color='red')
 plt.show()
 
 ```
@@ -559,7 +723,7 @@ Hoe wordt er voor gezorgd dat de snelheid van elk deeltje gelijk is?
 ```
 
 ```{solution} ex-brownian-2
-### YOUR CODE HERE ###
+Geeft de particles' snelheid aan door snelheids vectoren te creëren. De snelheid is hetzelfde omdat ie net zoals eerst met een pythagoras benadering is gemaakt.
 ```
 
 We gaan nu de functies van de simulatie weer aanroepen:
@@ -628,8 +792,12 @@ for i in range(400):
 ### YOUR CODE HERE ###
 
 plt.figure()
-plt.plot(track_x,track_y,'r')
-### YOUR CODE HERE ###
+plt.plot(track_x,track_y,'k')
+plt.xlim(-Box_size_0/2, Box_size_0/2)
+plt.ylim(-Box_size_0/2, Box_size_0/2)
+plt.xlabel('x')
+plt.ylabel('y')
+plt.gca().set_aspect('equal')
 plt.show()
 ```
 
@@ -654,11 +822,11 @@ ax.set_ylim(-Box_size_0/2, Box_size_0/2)
 ax.set_aspect('equal')
 
 # alle deeltjes als rode punten
-dots, = ax.plot([], [], 'ro', ms=18)
+dots, = ax.plot([], [], 'ro', ms=25)
 
 # de twee deeltjes extra benadrukken
-heavy_dot, = ax.plot([], [], 'ko', ms=20)   # zwaar
-light_dot, = ax.plot([], [], 'bo', ms=18)   # tweede (blauw)
+heavy_dot, = ax.plot([], [], 'ko', ms=25)   # zwaar
+light_dot, = ax.plot([], [], 'bo', ms=25)   # tweede (blauw)
 
 # ---- NIEUW: lijnen voor de paden ----
 heavy_path, = ax.plot([], [], 'k-', lw=1, alpha=0.8)
@@ -705,9 +873,10 @@ def update(frame):
 
     return dots, heavy_dot, light_dot, heavy_path, light_path
 
-ani = FuncAnimation(fig, update, frames=400, init_func=init, blit=True, interval=50)
+ani = FuncAnimation(fig, update, frames=400, init_func=init, blit=True, interval=50) #orig frames=400
 HTML(ani.to_jshtml())
 
+print(botsingen, np.sum(botsingen),len(botsingen))
 
 # writer = FFMpegWriter(
 #     fps=30,
@@ -716,7 +885,7 @@ HTML(ani.to_jshtml())
 # )
 
 # ani.save("deeltjes_hd.mp4", writer=writer, dpi=200)
-ani.save("deeltjes.gif", writer="pillow", fps=20)
+# ani.save("deeltjes.gif", writer="pillow", fps=20)
 ```
 
 ```{exercise} Brownian motion in beeld
@@ -728,7 +897,19 @@ ani.save("deeltjes.gif", writer="pillow", fps=20)
 ```
 
 ```{solution} ex-brownian-3
-### YOUR CODE HERE ###
+:label: ex-brownian-3
+- Draai de simulatie een keer en bestudeer de output.
+
+done
+- Voeg zelf een tweede tracking toe van een licht deeltje en verbeter de plot.
+
+tweede tracking van een licht deeltje, het blauwe deeltje is toegevoegd.
+- Wat zijn overeenkomsten en verschillen tussen de beweging van de twee deeltjes?
+
+overeenkomst is dat het elke run een random pad geeft. alleen beweegt de zware particle slomer, v_0=0, en de botsingen van de lichtere hebben een kleiner impuls.
+- Wat valt je op als je de simulatie een aantal keer runt?
+
+het duurt lang. elke keer zelfde start positie voor de blauwe en zwarte? maar wel random voor de andere particles. elke keer wel andere afgelegde paden?
 ```
 
 
@@ -742,7 +923,77 @@ Plot hieronder het aantal botsingen als functie van de tijd.
 ```
 
 ```python
+#redefining collision handler met counter erin
+collisionsperframe = 0
+def handle_collisions(particles):
+    ### YOUR CODE HERE ###
+    """ alle onderlinge botsingen afhandelen voor deeltjes in lijst """
+    num_particles = len(particles)
+    global collisionsperframe
+    collisionsperframe = 0
+    for i in range(num_particles):
+        for j in range(i+1, num_particles):
+            if collide_detection(particles[i], particles[j]):
+                particle_collision(particles[i], particles[j])
+                collisionsperframe += 1
+
+
+
+# tracken van het zware deeltje
+track_x = []
+track_y = []
+track_x2, track_y2 = [], []        # tweede deeltje (bijv. particles[0])
+counter = []
+counter_cum = []
 ### YOUR CODE HERE ###
+
+### YOUR CODE HERE ###
+
+for i in range(600):
+    
+    
+    for p in particles:  
+        p.update_position()    # Update positie        
+        p.boxcollision()         # Wandbotsing werkt per deeltje
+        
+    handle_collisions(particles)
+
+    counter.append(collisionsperframe) #stopt de collision counter per frame aantal in een array positie, 1 index per frame.
+    counter_cum=np.cumsum(counter) #hetzelfde maar cumulatief
+    
+    track_x.append(particles[N-1].r[0]) #heavy
+    track_y.append(particles[N-1].r[1])
+    track_x2.append(particles[0].r[0]) #light
+    track_y2.append(particles[0].r[1])
+    
+### YOUR CODE HERE ###
+
+plt.figure()
+plt.plot(track_x,track_y,'k',label='heavy')
+plt.plot(track_x2,track_y2,'b',label='light')
+plt.xlim(-Box_size_0/2, Box_size_0/2)
+plt.ylim(-Box_size_0/2, Box_size_0/2)
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.gca().set_aspect('equal')
+plt.show()
+#print(counter)
+print('length',len(counter),'sum=',np.sum(counter))
+
+plt.figure()
+plt.plot(counter,'.')
+plt.xlabel('frames')
+plt.ylabel('collisions')
+plt.title('collisions per frame')
+plt.show()
+
+plt.figure()
+plt.plot(counter_cum,'g')
+plt.xlabel('frames')
+plt.ylabel('collisions')
+plt.title('cumulative collisions')
+plt.show()
 ```
 
 ```{warning} 🌶 Let op!
