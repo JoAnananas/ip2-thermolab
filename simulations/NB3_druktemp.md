@@ -33,11 +33,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-BOX_SIZE_0 = 10                # Hoogte en lengte startvolume
-N = 40                         # Aantal deeltjes
-V_0 = 1                        # Startsnelheid van deeltjes
-RADIUS = 0.3                   # Straal van moleculen
-DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen
+BOX_SIZE_0 = 10                # 10^-9 | Hoogte en lengte startvolume (nm)
+N = 40                         # Aantal deeltjes 
+V_0 = 1                        # 10^2 | Startsnelheid van deeltjes (10^2m/s)?
+RADIUS = 0.3                   # 10^-9 | Straal van moleculen (nm)
+DT = 0.1 * RADIUS / V_0        # 10^-12=0.1*10^-9/10^2  | Tijdstap om geen botsing te missen
+#mass is #*10^-26 kg
 ```
 
 <!-- #region tags=[] -->
@@ -159,8 +160,7 @@ plt.xlim(-BOX_SIZE_0/2, BOX_SIZE_0/2)
 plt.ylim(-BOX_SIZE_0/2, BOX_SIZE_0/2)
 for p in particles:
     plt.plot(p.r[0], p.r[1], 'k.', ms=25)
-    plt.arrow(p.r[0], p.r[1], p.v[0], p.v[1], 
-              head_width=0.05, head_length=0.1, color='red')
+    plt.arrow(p.r[0], p.r[1], p.v[0], p.v[1], head_width=0.05, head_length=0.1, color='red')
 plt.plot(particles[0].r[0],particles[0].r[1], 'r.', ms=25)
 plt.show()
 ```
@@ -174,12 +174,17 @@ We hebben het eerste deeltje rood gemaakt zodat je daadwerkelijk kunt zien dat d
 Laten we het eerst zo eenvoudig mogelijk maken en controleren of het lukt om honderd tijdstappen te zetten met de hierboven gedefinieerde functies. 
 Als resultaat beperken we ons tot het plotten van de posities van de deeltjes en hun snelheden.
 
-```python tags=[]
+```python
+track_x2, track_y2 = [], [] #kan op dez manier over meerdere runs de tracker zien
+```
 
+```python tags=[]
 # doorlopen van de simulatie
 for i in range(100):
     take_time_step(particles)
-
+    #added the tracker myself
+    track_x2.append(particles[0].r[0])
+    track_y2.append(particles[0].r[1])
 # plotten van de positie van de deeltjes en hun snelheid als vector
 plt.figure()
 plt.xlabel('x')
@@ -193,6 +198,7 @@ for p in particles:
     plt.arrow(p.r[0], p.r[1], p.v[0], p.v[1], 
               head_width=0.05, head_length=0.1, color='red')
 plt.plot(particles[0].r[0],particles[0].r[1], 'r.', ms=25)
+plt.plot(track_x2,track_y2) #tracker plot
 plt.show()
 ```
 
@@ -222,9 +228,17 @@ Schrijf een functie die de temperatuur van het gas in onze simulatie bepaalt:
 
 ```python tags=["NB3_tempfun"]
 def temperature(particles) -> float:
-    temp = 0.0 
-    ### YOUR CODE HERE ###
+    f=2 #x,y
+    k=1.380649e-23
+    v2_mean = np.mean([p.v[0]**2 + p.v[1]**2 for p in particles]) #already squared.
+    # since total lenght is 1 (see particles creation) this is just 1
+    m=np.mean([p.m for p in particles]) #is in not kg??
+    temp=m*v2_mean/(k*f)
     return temp
+```
+
+```python
+
 ```
 
 <!-- #region tags=[] -->
@@ -237,22 +251,25 @@ Gebruik deze functie om een simulatie te maken waarin je de temperatuur als func
 
 ```python tags=["NB3_check_const_temp"]
 # ruimte voor uitwerking
-
 particles = []
-temperatures = np.zeros(100, dtype=float)
-times = np.linspace(1, 100, 100)
-
+temperatures = []
+times = 100
+elapsed_sec=np.linspace(0,DT*times,times)
+#print(elapsed_sec)
 create_particles(particles)
-for i in range(100):
+
+for i in range(times):
     take_time_step(particles)
     # vastleggen van temperatuur per tijdstap
-    ### YOUR CODE HERE ###
+    temperatures=np.append(temperatures,temperature(particles))
+#print(len(temperatures))
+#print(temperatures)
 
 plt.figure()
-plt.xlabel('Time')
-plt.ylabel('Temperature')
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (K)')
 # plotten van tijd tegen temperatuur
-### YOUR CODE HERE ###
+plt.plot(elapsed_sec,temperatures)
 plt.show()
 ```
 
@@ -265,6 +282,36 @@ In een vorige module heb je de vermenigvuldigingsfactoren en eenheden bij de con
 - Breid de berekening uit, zodat de eenheden kloppen bij het model dat we probeerden weer te geven.
 ```
 <!-- #endregion -->
+
+geeft 3.62 kelvin,dit is bepaald door de massa die 10^-26 is en de squared snelheid die 10^4 geeft, is alleen wel veel veel lager dan kamertempearuut waarin je je band zou opblazen.
+
+```python
+def temperature_accurate(particles) -> float:
+    f=2 #x,y
+    k=1.380649e-23
+    v2_mean = np.mean([p.v[0]**2 + p.v[1]**2 for p in particles]) #already squared.
+    # since total lenght is 1 (see particles creation) this is just 1
+    m=np.mean([p.m for p in particles]) #is in not kg??
+    temp=(m*1e-26)*(v2_mean*(1e2**2))/(k*f) #okay so 10e-26 is the weight scale of air. 10e4 is used instead of 10e2 since it need to be
+    #squared, now in the formula its already squared but speed is 1 there so it doesnt affect it, now it does
+    return temp
+
+particles = []
+temperatures = []
+create_particles(particles)
+
+for i in range(times):
+    take_time_step(particles)
+    # vastleggen van temperatuur per tijdstap
+    temperatures=np.append(temperatures,temperature_accurate(particles))
+
+plt.figure()
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (K)')
+# plotten van tijd tegen temperatuur
+plt.plot(elapsed_sec,temperatures)
+plt.show()
+```
 
 ## Druk
 
@@ -342,21 +389,24 @@ Wat zou je als verklaring hiervoor geven?
 
 <!-- #endregion -->
 
+De trigger voor een impulse_outward is een botsing met een muur, dit wordt dan omgezet in pressure. Alleen, niet elke tijd interval zal er een particle botsen met de wand, want er zijn weinig particles, dus is het een grafiek die ook weer naar nul gaat. Stel de tijdstappen waren continuous en de particles waren er miljarden dan zou de grafiek altijd oppervlak hebben een glooiender zijn.
+
 ```python tags=["NB3_plot_pres"]
 particles = []
-pressures = np.zeros(100, dtype=float)
-times = np.linspace(1, 100, 100)
+pressures = []
+times = 100
+elapsed_sec=np.linspace(0,DT*times,times)
+create_particles(particles)
 
-### YOUR CODE HERE ###
+for i in range(times):
+    take_time_step(particles)
+    pressures=np.append(pressures,pressure)
 
 plt.figure()
 plt.xlabel('Time [step]')
 plt.ylabel('Pressure [a.u.]')
-
-plt.plot(times, pressures, '-r')
-
+plt.plot(elapsed_sec, pressures, '-r')
 plt.show()
-
 ```
 
 <!-- #region tags=[] -->
@@ -376,7 +426,36 @@ Zet je initiële waarden weer terug.
 <!-- #endregion -->
 
 ```python tags=[]
-### YOUR CODE HERE ###
+BOX_SIZE_0=20 #orig 10
+N=400 #orig 40
+def create_particles(particles):
+    """ Leegmaken en opnieuw aanmaken van deeltjes  in lijst """
+    particles.clear()
+    for i in range(N):
+        vx = np.random.uniform(-V_0, V_0)
+        vy = np.random.choice([-1, 1]) * np.sqrt(V_0**2 - vx**2)        
+        pos = np.random.uniform(-BOX_SIZE_0/2 + RADIUS, BOX_SIZE_0/2 - RADIUS, 2)
+        particles.append(ParticleClass(m=1.0, v=[vx, vy], r=pos, R=RADIUS))
+
+
+particles = []
+pressures = []
+times = 100
+elapsed_sec=np.linspace(0,DT*times,times)
+create_particles(particles)
+
+for i in range(times):
+    take_time_step(particles)
+    pressures=np.append(pressures,pressure)
+
+plt.figure()
+plt.xlabel('Time [step]')
+plt.ylabel('Pressure [a.u.]')
+plt.plot(elapsed_sec, pressures, '-r')
+plt.show()
+#resets the changed values ot the originals
+BOX_SIZE_0=10 #orig 10
+N=40 #orig 40
 
 ```
 
@@ -408,7 +487,7 @@ def handle_walls(particles):
     for p in particles:
         left_right_collision(p)
         top_down_collision(p)    
-    alpha = 0.1
+    alpha = 0.01
     pressure = alpha * impulse_outward / (4 * BOX_SIZE_0 * DT) + (1-alpha) * pressure # omtrek volume is oppervlak (2D sim)
 ```
 
@@ -418,15 +497,23 @@ Kopieer nu je code voor de simulatie waarin je de druk als functie van de tijd h
 
 ```python
 particles = []
-N_steps = 500 
+N_steps = 1000 
 pressures = np.zeros(N_steps, dtype=float)
 
 times = np.linspace(1, N_steps, N_steps)
 
 create_particles(particles)
 
-### YOUR CODE HERE ###
+for i in range(N_steps):
+    take_time_step(particles)
+    pressures[i]=pressure
 
+plt.figure()
+plt.xlabel('Time [step]')
+plt.ylabel('Pressure [a.u.]')
+plt.plot(times, pressures, '-r')
+plt.show()
+print('the mean of the pressure is:',np.mean(pressures))
 ```
 
 Met de middeling kun je beter zien wat de gemiddelde waarde voor de druk in dit systeem is. Als dit voor jouw simulatie lastig is kan je de factor `alpha` aanpassen in de functie 'handle_walls`, zodat je over een langere periode het gemiddelde neemt. Hou daarbij wel rekening met de eis in [bovenstaande formule](int_norm)
@@ -437,7 +524,15 @@ We kunnen de gevonden druk nu wel uitdrukken in SI-eenheden met behulp van de vo
 ```
 
 ```{solution} ex-druktemp-7
-### YOUR CODE HERE ###
+Note dat deze aanpak de pressure van de instantie ervoor meeneemt door het alpha gedoe.
+
+
+
+10 bar is 10^6 pascal, alleen meten we in N/m terwijl pascal N/m^2 is. In 
+
+$$P \approx \frac{\Delta p}{l\Delta t} $$ 
+
+eerder was vast gesteld dat snelheid 10^2 is, dat dt 10^-12 is, dat l 10^-9 is en massa 10^-26 is. p geeft dan m*v*2 dus=10^-26*10^2=10^-24 -> 10^-24/(10^-9*10^-12)=10^-24/10^-21 geeft 10^{-3} N/m. zonder 3d toevoeging kunnen we uberhaupt niet naar pascal of bar. dus we kunnen alleen N/m berekenen, wat ongeveer 2.6*10^-4 N/m is. stel je maakt de bak 10 nm diep, een doos dus, dan krijg je 0.26 bar wat ook nogsteeds niet in de buurt komt. onder andere door de temperatuur van 3.6 kelvin wat de snelheid en dus druk verlaagt. verder is er een discrepansie tussen de snlheid en temperatuur, de temp is te laag voor de snelheid.
 ```
 
 
@@ -449,7 +544,7 @@ Leg op basis van de vormen die je ziet en de bijbehorende wiskunde uit dat dit e
 ```
 
 ```{solution} ex-druktemp-8
-### YOUR CODE HERE ###
+er is een 1/x trend te zien elke keer dat de druk daalt, dit is een exponentiele verhouding.
 ```
 
 
@@ -479,8 +574,47 @@ Controleer of je uitkomst overeenkomt met de theorie en verifieer hiermee de cod
 ```
 
 ```python
-### YOUR CODE HERE ###
+def pressure_vx(particles):
+    m=np.mean([p.m for p in particles])*1e-26
+    N=40
+    A=(10e-9)**2
+    v_squared=np.mean([p.v[0]**2 for p in particles])*(1e2**2)
+    return m*N*v_squared/(A)
+
+def pressure_v_tot(particles):
+    m=np.mean([p.m for p in particles])*1e-26
+    N=40
+    A=(10e-9)**2
+    v_squared=np.mean([p.v[0]**2+p.v[1]**2 for p in particles])*(1e2**2)
+    return m*N*v_squared/(A*2)
+
+    
+particles = []
+N_steps = 500 
+pressures = np.zeros(N_steps, dtype=float)
+
+times = np.linspace(1, N_steps, N_steps)
+
+create_particles(particles)
+
+for i in range(N_steps):
+    take_time_step(particles)
+    pressures[i]=pressure
+
+plt.figure()
+plt.xlabel('Time [step]')
+plt.ylabel('Pressure [1e-5 N/m]')
+plt.plot(times, pressures, '-r')
+plt.show()
+M_UNIT, V_UNIT, L_UNIT = 1e-26, 1e2, 1e-9
+P_meas = np.mean(pressures) * M_UNIT * (V_UNIT / L_UNIT)**2
+print('measured pressure in the correct units is',P_meas)
+print('the mean of the pressure with only vx, and implemented units is:',pressure_vx(particles))
+print('found pressure with v total, and implemented units is,',pressure_v_tot(particles),' this is constant since total speed is constant')
 ```
+
+dus we halen hieruit dat de units goed zijn uitgevoerd binnen de code. of ze oprecht kloppen? geen idee want ik denk dat 3.6 kelvin neit klopt. maar andere verhoudingen werken neit omdat het dan bijvoorbeeld 360 kelvin wordt. deze waardes voor P zijn natuurlijk N/m wat nieteens de goede eenheid is voor de fietsband vergelijking. Maar verder, de waardes die we krijgen uit de simulatie met behulp van de impuls zijn zeer vergelijkbaar met de ''theoretische'' waardes gevonden via alleen de snelheden, zonder de botsingen in de simulatie na te gaan. dus in dat aspect lijnt onze simualtie op met de verwachting
+
 
 In [de formule voor de tweedimensionale druk](2d_pressure) kan je de structuur van de ideale gaswet herkennen. 
 
@@ -492,8 +626,45 @@ Herleid dezelfde formule af voor het driedimensionale geval. Laat zien welke rel
 
 
 ```{solution} ex-druktemp9b
-Geef hier de relatie tussen de constanten...
-### YOUR CODE HERE ###
+Dit is het macroscopische model:
+
+$V = l^3$. De druk op een wand is kracht per oppervlak, met oppervlak $l^2$:
+
+$$
+    P = \frac{\Delta p}{l^2 \Delta t} = \frac{2mv_x}{l^2 \Delta t}
+$$
+
+Dit omschrijven met dezelfde delta t insertion:
+
+$$
+    \left< P \right> = \frac{mN}{V} \left< v_x^2 \right>
+$$
+
+In drie dimensies is dan $\left< v_x^2 \right> = \frac{1}{3}\left< v^2 \right>$, zodat:
+
+$$
+    PV = \frac{1}{3} N m \left< v^2 \right>.
+$$
+
+**Relatie tussen de constanten.** 
+
+Met $f = 3$ vrijheidsgraden geeft de temperatuurformule $m\left< v^2 \right> = 3kT$ dit is logisch aangezien beide natuurlijk energie functies zijn, $E_k$ en $E$ uit de $k_B$. Invullen in het model hierboven levert
+
+$$
+    PV = NkT.
+$$
+
+Het macroscopische model is de ideale gaswet $PV = nRT$, met $n$ het aantal mol. Met $n = N/N_A$, $N_A$ is getal van Avogrado, volgt
+
+$$
+    nRT = \frac{N}{N_A} RT = NkT
+$$
+Dit levert:
+$$
+    R = N_A k.
+$$
+
+De gasconstante $R$ (thermodynamisch/macroscopisch) is $k_B$ (mechanisch/microscopisch) keer $N_A$, alleen geldt $k$ per deeltje, en $R$ per mol.
 ```
 
 
